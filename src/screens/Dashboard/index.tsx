@@ -11,6 +11,8 @@ import {
   TransactionCardProps,
 } from "../../components/TransactionCard";
 
+import { useAuth } from "../../hooks/auth";
+
 import {
   Container,
   Header,
@@ -42,6 +44,9 @@ interface HighlightData {
 }
 export const Dashboard: React.FC = () => {
   const theme = useTheme();
+
+  const { signOut, user } = useAuth();
+
   const [isLoading, setIsLoading] = useState(true);
   const [transactions, setTransactions] = useState<DataListProps[]>([]);
   const [highlightData, setHighlightData] = useState<HighlightData>(
@@ -52,15 +57,20 @@ export const Dashboard: React.FC = () => {
     collection: DataListProps[],
     type: "positive" | "negative"
   ) {
+    const collectionFilttered = collection.filter(
+      (transaction) => transaction.type === type
+    );
+
+    if (collectionFilttered.length === 0) {
+      return 0;
+    }
+
     const lastTransaction = new Date(
       Math.max.apply(
         Math,
-        collection
-
-          .filter((transaction) => transaction.type === type)
-          .map((transaction: DataListProps) =>
-            new Date(transaction.date).getTime()
-          )
+        collectionFilttered.map((transaction: DataListProps) =>
+          new Date(transaction.date).getTime()
+        )
       )
     );
 
@@ -73,7 +83,7 @@ export const Dashboard: React.FC = () => {
   }
 
   async function loadTransactions() {
-    const dataKey = "@gofinances:transactions";
+    const dataKey = `@gofinances:transactions_user:${user.id}`;
     const response = await AsyncStorage.getItem(dataKey);
 
     const transactions = response ? JSON.parse(response) : [];
@@ -122,7 +132,10 @@ export const Dashboard: React.FC = () => {
       "negative"
     );
 
-    const totalInterval = ` 01 a ${lastTransactionExpansives}`;
+    const totalInterval =
+      lastTransactionExpansives !== 0
+        ? ` 01 a ${lastTransactionExpansives}`
+        : "Não há entradas ou saídas cadastradas";
 
     const total = entriesTotal - expensiveTotal;
 
@@ -132,14 +145,20 @@ export const Dashboard: React.FC = () => {
           style: "currency",
           currency: "BRL",
         }),
-        lastTransaction: `Última entrada dia ${lastTransactionEntries}`,
+        lastTransaction:
+          lastTransactionEntries !== 0
+            ? `Última entrada dia ${lastTransactionEntries}`
+            : "Não há entradas cadastradas",
       },
       expensives: {
         amount: expensiveTotal.toLocaleString("pt-BR", {
           style: "currency",
           currency: "BRL",
         }),
-        lastTransaction: `Última saída dia ${lastTransactionExpansives}`,
+        lastTransaction:
+          lastTransactionExpansives !== 0
+            ? `Última saída dia ${lastTransactionExpansives}`
+            : "Não há saídas cadastradas",
       },
       total: {
         amount: total.toLocaleString("pt-BR", {
@@ -175,15 +194,15 @@ export const Dashboard: React.FC = () => {
               <UserInfo>
                 <Photo
                   source={{
-                    uri: "https://avatars2.githubusercontent.com/u/57304383?v=4",
+                    uri: user.photo,
                   }}
                 />
                 <User>
                   <UserGretting>Olá</UserGretting>
-                  <UserName>Rafael</UserName>
+                  <UserName>{user.name}</UserName>
                 </User>
               </UserInfo>
-              <Icon name="power" />
+              <Icon name="power" onPress={signOut} />
             </UserWrapper>
           </Header>
           <HighlightCards>
@@ -191,7 +210,11 @@ export const Dashboard: React.FC = () => {
               type="up"
               title="Entrada"
               amount={highlightData.entries.amount}
-              lastTransaction={highlightData.entries.lastTransaction}
+              lastTransaction={
+                highlightData.entries.lastTransaction
+                  ? highlightData.entries.lastTransaction
+                  : "Não há entradas cadastradas"
+              }
             />
             <HighlightCard
               type="down"
@@ -203,7 +226,11 @@ export const Dashboard: React.FC = () => {
               type="total"
               title="Total"
               amount={highlightData.total.amount}
-              lastTransaction={highlightData.total.lastTransaction}
+              lastTransaction={
+                highlightData.total.lastTransaction
+                  ? highlightData.total.lastTransaction
+                  : "Não há entradas ou saídas cadastradas"
+              }
             />
           </HighlightCards>
 

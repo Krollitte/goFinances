@@ -12,6 +12,7 @@ import { ptBR } from "date-fns/locale";
 import { HistoryCard } from "../../components/HistoryCard";
 
 import { categories } from "../../utils/categories";
+import { useAuth } from "../../hooks/auth";
 
 import {
   Container,
@@ -44,6 +45,7 @@ interface CategoryData {
   percent: string;
 }
 export function Resume() {
+  const { user } = useAuth();
   const theme = useTheme();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -60,7 +62,7 @@ export function Resume() {
   }
   async function loadData() {
     setIsLoading(true);
-    const dataKey = "@gofinances:transactions";
+    const dataKey = `@gofinances:transactions_user:${user.id}`;
     const response = await AsyncStorage.getItem(dataKey);
     const responseFormatted = response ? JSON.parse(response) : [];
 

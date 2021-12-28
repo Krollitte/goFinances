@@ -1,11 +1,6 @@
 import styled from "styled-components/native";
-import { Feather } from "@expo/vector-icons";
-import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
-import {
-  getBottomSpace,
-  getStatusBarHeight,
-} from "react-native-iphone-x-helper";
-import { FlatList, FlatListProps } from "react-native";
+
+import { RFValue } from "react-native-responsive-fontsize";
 
 interface ContainerProps {
   color: string;
